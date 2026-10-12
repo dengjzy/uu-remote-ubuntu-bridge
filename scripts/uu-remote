@@ -27,6 +27,13 @@ notify_error() {
     printf '%s\n' "$1" >&2
 }
 
+notify_info() {
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send 'UU Remote' "$1" || true
+    fi
+    printf '%s\n' "$1"
+}
+
 mkdir -p "$state_dir"
 
 case "${1:-open}" in
@@ -37,7 +44,27 @@ case "${1:-open}" in
         exec "${systemctl_user[@]}" restart uu-remote-bridge.service
         ;;
     stop)
-        exec "${systemctl_user[@]}" stop uu-remote-bridge.service
+        "${systemctl_user[@]}" stop uu-remote-bridge.service
+        notify_info 'UU Remote has quit completely. Open it again to start it.'
+        ;;
+    autostart)
+        case "${2:-status}" in
+            on)
+                "${systemctl_user[@]}" enable uu-remote-bridge.service
+                notify_info 'UU Remote will now start automatically at login.'
+                ;;
+            off)
+                "${systemctl_user[@]}" disable uu-remote-bridge.service
+                notify_info 'UU Remote will no longer start at login.'
+                ;;
+            status)
+                exec "${systemctl_user[@]}" is-enabled uu-remote-bridge.service
+                ;;
+            *)
+                printf 'usage: uu-remote autostart [on|off|status]\n' >&2
+                exit 2
+                ;;
+        esac
         ;;
     logs)
         exec journalctl --user -fu uu-remote-bridge.service
@@ -117,7 +144,7 @@ case "${1:-open}" in
         exec "$console_bin" open "$@"
         ;;
     *)
-        printf 'usage: uu-remote [open|console|login|status|network|repair-registry|restart|stop|logs|update|upgrade]\n' >&2
+        printf 'usage: uu-remote [open|console|login|status|network|repair-registry|restart|stop|autostart|logs|update|upgrade]\n' >&2
         exit 2
         ;;
 esac

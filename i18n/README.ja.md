@@ -81,6 +81,8 @@ uu-shell --native lab
 コンポーネントのビルド、GNOME Remote Desktop の設定、GNOME Keyring
 への RDP パスワード保存、systemd ユーザーサービスの起動まで行います。
 
+UU Remote のウィンドウを閉じても閉じるのはビューアだけで、UU はバックグラウンドで動き続けます。`uu-remote stop` で完全に終了してメモリを解放し、`uu-remote autostart on|off|status` でログイン時に起動するかを選べます。どちらもランチャーの右クリックメニューから操作できます。再インストールしても、以前の `uu-remote autostart off` は維持されます。
+
 ## 制御経路
 
 ```text

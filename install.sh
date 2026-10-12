@@ -8,6 +8,8 @@ repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "$repo_dir/scripts/runtime-settings.sh"
 # shellcheck source=scripts/installer-download.sh
 source "$repo_dir/scripts/installer-download.sh"
+# shellcheck source=scripts/launcher-install.sh
+source "$repo_dir/scripts/launcher-install.sh"
 bridge_user="${USER:-$(id -un)}"
 wine_prefix="${WINEPREFIX:-$HOME/.local/share/wineprefixes/uu-remote}"
 config_dir="$HOME/.config/uu-remote-bridge"
@@ -553,6 +555,10 @@ if [[ "$desktop_relay" == rdp ]]; then
     "$repo_dir/scripts/build-winpr.sh" --download-client-only
 fi
 
+prior_autostart=''
+if [[ "$prefix_only" == false ]]; then
+    prior_autostart="$(bridge_autostart_state "${systemctl_user[@]}")"
+fi
 bridge_was_active=false
 if [[ "$prefix_only" == false ]] &&
    "${systemctl_user[@]}" is-active --quiet uu-remote-bridge.service; then
@@ -816,18 +822,8 @@ install -m 0644 "$repo_dir/systemd/uu-keyring-unlock.service" \
     "$HOME/.config/systemd/user/uu-keyring-unlock.service"
 
 desktop_entry="$HOME/.local/share/applications/uu-remote.desktop"
-"$python_bin" - "$repo_dir/desktop/uu-remote.desktop.in" \
-    "$desktop_entry" "$HOME/.local/bin/uu-remote" <<'PY'
-import sys
-from pathlib import Path
-
-template, destination, executable = map(Path, sys.argv[1:])
-escaped = str(executable).replace("\\", "\\\\").replace(" ", "\\ ")
-rendered = template.read_text(encoding="ascii").replace(
-    "@EXEC@", f"{escaped} open"
-)
-destination.write_text(rendered, encoding="ascii")
-PY
+render_desktop_entry "$repo_dir/desktop/uu-remote.desktop.in" \
+    "$desktop_entry" "$HOME/.local/bin/uu-remote"
 chmod 0644 "$desktop_entry"
 if [[ -d "$HOME/Desktop" ]]; then
     desktop_shortcut="$HOME/Desktop/UU Remote.desktop"
@@ -902,7 +898,7 @@ unset relay_vnc_password
 unset rdp_password
 
 "${systemctl_user[@]}" daemon-reload
-"${systemctl_user[@]}" reenable uu-remote-bridge.service
+refresh_bridge_autostart "$prior_autostart" "${systemctl_user[@]}"
 
 if [[ "$fresh_install" == true && "$skip_account_login" == false ]]; then
     printf '\nUU Remote needs an authenticated account once.\n'

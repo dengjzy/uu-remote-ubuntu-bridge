@@ -82,6 +82,8 @@ El instalador idempotente instala dependencias, verifica todos los artefactos,
 compila el código de compatibilidad, configura GNOME Remote Desktop, guarda la
 contraseña RDP en GNOME Keyring e inicia un servicio systemd de usuario.
 
+Cerrar la ventana de UU Remote solo cierra el visor; UU sigue ejecutándose en segundo plano. `uu-remote stop` lo cierra por completo y libera su memoria, y `uu-remote autostart on|off|status` decide si se inicia al iniciar sesión. Ambas opciones están también en el menú contextual del lanzador. Una reinstalación conserva un `uu-remote autostart off` anterior.
+
 ## Ruta de control
 
 ```text

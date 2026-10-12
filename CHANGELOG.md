@@ -8,6 +8,10 @@ locked by the release manifest.
 
 ### Fixed
 
+- preserve explicit disabled and runtime-only launcher autostart choices;
+  abort an unreadable/masked unit preflight before stopping the bridge, and
+  render desktop Exec paths through GLib-tested quoting, including spaces,
+  Unicode, quotes, dollar signs, backticks, percent signs and backslashes
 - detect restart storms from bounded, current-boot journal events within the
   last 15 minutes, rather than treating systemd's lifetime restart total as a
   recent failure; recheck unstarted runtime-health repairs after recovery and
@@ -79,6 +83,11 @@ locked by the release manifest.
 
 ### Added
 
+- add a complete-quit and start-at-login switch for the windowed launcher:
+  `uu-remote stop` now reports that the background service has quit,
+  `uu-remote autostart on|off|status` toggles `uu-remote-bridge.service`, and
+  the launcher gains matching right-click actions; a reinstall keeps an earlier
+  `uu-remote autostart off`, and new installs still start at login
 - exact-hash support for UU `4.42.1.2835`, whose bundled executables report
   `4.42.0.2770`; hash-bound workstation acceptance now covers physical-desktop
   video, mouse/buttons, English typing, bidirectional Chinese text clipboard,

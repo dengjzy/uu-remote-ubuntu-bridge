@@ -588,13 +588,27 @@ check, descriptor protection, and unattended boot dependency chain.
 ```bash
 uu-remote status
 uu-remote restart
-uu-remote stop
+uu-remote stop        # quit completely: stops UU and frees its memory (until the next `uu-remote open`)
+uu-remote autostart status  # use on or off to change start-at-login behavior
 uu-remote logs
 uu-remote login       # one-time sign-in or account recovery on this desktop
 uu-remote repair-registry  # bounded repair for a “finding routes” cold-start stall
 scripts/verify.sh --quick
 scripts/verify.sh
 ```
+
+Closing the UU Remote window only closes the viewer; UU keeps running in the
+background. `uu-remote stop` quits it completely and frees its memory, and
+`uu-remote autostart on|off|status` chooses whether it starts at login. Both are
+also in the launcher's right-click menu. A reinstall keeps an earlier
+`uu-remote autostart off`.
+
+`autostart status` preserves systemctl's exit status (zero when enabled,
+nonzero when disabled or unavailable). Installation checks the old choice
+before stopping the bridge: a failed manager query or a masked/unrecognized
+unit aborts rather than silently enabling it. Runtime-only enablement remains
+runtime-only. See the [contribution review](docs/reviews/2026-10-12-launcher-and-viewer.md)
+for the launcher tests and the separate, unmerged popup-viewer proposal.
 
 The full verifier waits 270 seconds and proves the same server PID crosses
 UU's former four-minute failure interval. It also confirms that the installed
