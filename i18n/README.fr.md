@@ -83,6 +83,8 @@ artefacts, compile les composants de compatibilité, configure GNOME Remote
 Desktop, conserve le mot de passe RDP dans GNOME Keyring et démarre un service
 systemd utilisateur.
 
+Fermer la fenêtre UU Remote ne ferme que le visualiseur ; UU continue de s’exécuter en arrière-plan. `uu-remote stop` le quitte complètement et libère sa mémoire, et `uu-remote autostart on|off|status` choisit s’il démarre à l’ouverture de session. Les deux sont aussi dans le menu contextuel du lanceur et dans l’entrée « UU Remote Settings » (nécessite `zenity`, installé par `./install.sh`). Une réinstallation conserve un `uu-remote autostart off` précédent.
+
 ## Chemin de contrôle
 
 ```text

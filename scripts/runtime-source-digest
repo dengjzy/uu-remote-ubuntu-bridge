@@ -18,6 +18,7 @@ runtime_files=(
     scripts/configure-unattended.sh
     scripts/inspect-wine-device-registry.py
     scripts/installer-download.sh
+    scripts/launcher-install.sh
     scripts/archive-wine-launchers.py
     scripts/runtime-settings.sh
     scripts/runtime-source-digest

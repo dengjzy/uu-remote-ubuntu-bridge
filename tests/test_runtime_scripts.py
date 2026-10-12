@@ -398,7 +398,7 @@ class RuntimeScriptTests(unittest.TestCase):
         self.assertIn("Exec=@EXEC@ stop", desktop)
         self.assertIn("Exec=@EXEC@ autostart on", desktop)
         self.assertIn("Exec=@EXEC@ autostart off", desktop)
-        self.assertIn(".replace(\"@EXEC@\", escaped)", installer)
+        self.assertIn("render_desktop_entry", installer)
         self.assertIn("enable uu-remote-bridge.service", command)
         self.assertIn("disable uu-remote-bridge.service", command)
         self.assertIn("is-enabled uu-remote-bridge.service", command)

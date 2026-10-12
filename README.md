@@ -597,6 +597,14 @@ scripts/verify.sh --quick
 scripts/verify.sh
 ```
 
+Closing the UU Remote window only closes the viewer; UU keeps running in the
+background. `uu-remote stop` quits it completely and frees its memory, and
+`uu-remote autostart on|off|status` chooses whether it starts at login. Both are
+also in the launcher's right-click menu and in the "UU Remote Settings" entry
+(it needs `zenity`, which `./install.sh` installs; with `--skip-packages`, run
+`sudo apt install zenity`). A reinstall keeps an earlier
+`uu-remote autostart off`.
+
 The full verifier waits 270 seconds and proves the same server PID crosses
 UU's former four-minute failure interval. It also confirms that the installed
 runtime was built from the current checkout, the current cold start completed

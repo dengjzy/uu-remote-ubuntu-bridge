@@ -83,6 +83,8 @@ Artefakte, kompiliert die Kompatibilitätskomponenten, richtet GNOME Remote
 Desktop ein, speichert das RDP-Passwort im GNOME-Schlüsselbund und startet
 einen systemd-Benutzerdienst.
 
+Das Schließen des UU-Remote-Fensters beendet nur den Viewer; UU läuft im Hintergrund weiter. `uu-remote stop` beendet es vollständig und gibt den Speicher frei, `uu-remote autostart on|off|status` legt fest, ob es bei der Anmeldung startet. Beides steht auch im Rechtsklick-Menü des Starters und im Eintrag „UU Remote Settings“ (benötigt `zenity`, das `./install.sh` installiert). Eine Neuinstallation behält ein früheres `uu-remote autostart off` bei.
+
 ## Steuerpfad
 
 ```text
