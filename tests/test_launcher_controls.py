@@ -1,13 +1,12 @@
 """Launcher quit and start-at-login controls, run against stub commands.
 
-Nothing here touches a real systemd user manager, desktop session or package
-database: systemctl, zenity, notify-send and sudo are stubs that log their
-arguments, and the launcher under test is a copy that calls the stub.
+Nothing here touches a real systemd user manager or desktop session:
+systemctl and notify-send are stubs that log their arguments, and the launcher
+under test is a copy that calls the stub.
 """
 
 import configparser
 import os
-import re
 import shlex
 import shutil
 import subprocess
@@ -44,17 +43,12 @@ exit 0
 NOTIFY_STUB = """#!/bin/bash
 printf 'notify %s\\n' "$*" >>"$STUB_LOG"
 """
-ZENITY_STUB = """#!/bin/bash
-printf 'zenity\\n' >>"$STUB_LOG"
-printf '%s\\n' "${STUB_CHOICE:-}"
-exit "${STUB_ZENITY_RC:-0}"
-"""
 
 
 class Sandbox:
     """A private home, stub commands and a launcher copy that uses them."""
 
-    def __init__(self, *, zenity=True):
+    def __init__(self):
         self.directory = tempfile.TemporaryDirectory()
         root = Path(self.directory.name)
         self.home = root / "home"
@@ -69,8 +63,6 @@ class Sandbox:
         self.executable.parent.mkdir()
         self.systemctl = self.stub("systemctl", SYSTEMCTL_STUB)
         self.stub("notify-send", NOTIFY_STUB)
-        if zenity:
-            self.stub("zenity", ZENITY_STUB)
         for name in ("bash", "mkdir"):
             (self.bin / name).symlink_to(shutil.which(name))
         text = (ROOT / "scripts" / "uu-remote").read_text()
@@ -118,8 +110,8 @@ class Sandbox:
 
 
 class LauncherCommandTests(unittest.TestCase):
-    def sandbox(self, **options):
-        box = Sandbox(**options)
+    def sandbox(self):
+        box = Sandbox()
         self.addCleanup(box.cleanup)
         return box
 
@@ -177,54 +169,18 @@ class LauncherCommandTests(unittest.TestCase):
         self.assertIn("usage: uu-remote autostart", result.stderr)
         self.assertEqual([], box.calls())
 
-    def test_settings_dialog_without_zenity_explains_and_changes_nothing(self):
-        # What a --skip-packages install on a host without zenity looks like.
-        box = self.sandbox(zenity=False)
-        result = box.launcher("manage")
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("needs zenity", result.stderr)
-        self.assertIn("uu-remote stop", result.stderr)
-        self.assertEqual(
-            [], [c for c in box.calls() if c.startswith("systemctl")]
-        )
-
-    def test_settings_dialog_runs_the_chosen_action_only(self):
-        expected = {
-            "quit": "stop",
-            "on": "enable",
-            "off": "disable",
-        }
-        for choice, verb in expected.items():
-            with self.subTest(choice=choice):
-                box = self.sandbox()
-                result = box.launcher("manage", STUB_CHOICE=choice)
-                self.assertEqual(result.returncode, 0, result.stderr)
-                changes = [
-                    c for c in box.calls()
-                    if c.startswith("systemctl")
-                    and c.split()[2] not in ("is-active", "is-enabled")
-                ]
-                self.assertEqual([f"systemctl --user {verb} {SERVICE}"], changes)
-
-    def test_cancelled_settings_dialog_changes_nothing(self):
-        box = self.sandbox()
-        result = box.launcher("manage", STUB_ZENITY_RC="1")
-        self.assertEqual(result.returncode, 0, result.stderr)
-        verbs = {c.split()[2] for c in box.calls() if c.startswith("systemctl")}
-        self.assertLessEqual(verbs, {"is-active", "is-enabled"})
 
 
 class RenderedLauncherTests(unittest.TestCase):
-    """The installed .desktop files, as install.sh renders them."""
+    """The installed .desktop file, as install.sh renders it."""
 
-    def render(self, template, destination, executable):
+    def render(self, destination, executable):
         subprocess.run(
             [
                 "bash", "-c",
-                'source "$1"; shift; python_bin=/usr/bin/python3; '
-                'render_desktop_entry "$@"',
+                'source "$1"; shift; python_bin=/usr/bin/python3; render_desktop_entry "$@"',
                 "test", str(HELPERS),
-                str(ROOT / "desktop" / template), str(destination), str(executable),
+                str(ROOT / "desktop" / "uu-remote.desktop.in"), str(destination), str(executable),
             ],
             check=True,
             capture_output=True,
@@ -234,26 +190,18 @@ class RenderedLauncherTests(unittest.TestCase):
         parser.read(destination, encoding="utf-8")
         return parser
 
-    def test_entries_run_the_launcher_with_the_intended_subcommands(self):
+    def test_right_click_actions_run_the_launcher_with_the_intended_subcommands(self):
         box = Sandbox()
         self.addCleanup(box.cleanup)
-        out = Path(box.directory.name)
-        main = self.render("uu-remote.desktop.in", out / "main.desktop", box.executable)
-        manage = self.render(
-            "uu-remote-manage.desktop.in", out / "manage.desktop", box.executable
-        )
+        entry = self.render(Path(box.directory.name) / "main.desktop", box.executable)
         exe = str(box.executable)
 
-        def argv(parser, section):
-            return shlex.split(parser[section]["Exec"])
+        def argv(section):
+            return shlex.split(entry[section]["Exec"])
 
-        # Opening and the dialog are only checked, not run: they start Wine
-        # or need a display.
-        self.assertEqual([exe, "open"], argv(main, "Desktop Entry"))
-        self.assertEqual([exe, "manage"], argv(manage, "Desktop Entry"))
-        self.assertEqual(
-            "Quit;AutostartOn;AutostartOff;", main["Desktop Entry"]["Actions"]
-        )
+        # Opening starts Wine, so it is only checked, not run.
+        self.assertEqual([exe, "open"], argv("Desktop Entry"))
+        self.assertEqual("Quit;AutostartOn;AutostartOff;", entry["Desktop Entry"]["Actions"])
         actions = {
             "Desktop Action Quit": ([exe, "stop"], "stop"),
             "Desktop Action AutostartOn": ([exe, "autostart", "on"], "enable"),
@@ -261,32 +209,24 @@ class RenderedLauncherTests(unittest.TestCase):
         }
         for section, (expected, verb) in actions.items():
             with self.subTest(section=section):
-                self.assertEqual(expected, argv(main, section))
+                self.assertEqual(expected, argv(section))
                 box.log.write_text("")
-                result = box.run(argv(main, section))
+                result = box.run(argv(section))
                 self.assertEqual(result.returncode, 0, result.stderr)
-                changes = [
-                    c for c in box.calls() if c.startswith("systemctl")
-                ]
+                changes = [c for c in box.calls() if c.startswith("systemctl")]
                 self.assertEqual([f"systemctl --user {verb} {SERVICE}"], changes)
 
     @unittest.skipUnless(shutil.which("desktop-file-validate"), "no validator")
-    def test_rendered_entries_are_valid_desktop_files(self):
+    def test_rendered_entry_is_a_valid_desktop_file(self):
         with tempfile.TemporaryDirectory() as temporary:
-            out = Path(temporary)
-            for template in ("uu-remote.desktop.in", "uu-remote-manage.desktop.in"):
-                destination = out / template.removesuffix(".in")
-                self.render(template, destination, "/opt/uu/bin/uu-remote")
-                result = subprocess.run(
-                    ["desktop-file-validate", str(destination)],
-                    capture_output=True,
-                    text=True,
-                )
-                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            destination = Path(temporary) / "uu-remote.desktop"
+            self.render(destination, "/opt/uu/bin/uu-remote")
+            result = subprocess.run(["desktop-file-validate", str(destination)], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
 class InstallerAutostartTests(unittest.TestCase):
-    """install.sh keeps an earlier `autostart off` and installs zenity."""
+    """install.sh keeps an earlier `autostart off`."""
 
     def installer_step(self, enabled, **extra):
         # Same order as install.sh: read the state, write the unit, refresh.
@@ -344,26 +284,6 @@ class InstallerAutostartTests(unittest.TestCase):
         self.assertLess(read, write)
         self.assertLess(write, refresh)
         self.assertNotIn(f"reenable {SERVICE}", source)
-
-    def test_package_install_requests_the_settings_dialog_dependency(self):
-        source = INSTALLER.read_text()
-        function = re.search(r"^install_packages\(\) \{\n.*?^\}\n", source, re.S | re.M)
-        self.assertIsNotNone(function)
-        script = (
-            function.group(0)
-            + 'sudo() { printf "%s\\n" "$*"; }\n'
-            + "install_winehq() { :; }\ninstall_packages\n"
-        )
-        result = subprocess.run(
-            ["bash", "-c", script], capture_output=True, text=True, timeout=30
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        installs = [
-            line for line in result.stdout.splitlines()
-            if line.startswith("apt-get install")
-        ]
-        self.assertEqual(1, len(installs), result.stdout)
-        self.assertIn("zenity", installs[0].split())
 
 
 if __name__ == "__main__":

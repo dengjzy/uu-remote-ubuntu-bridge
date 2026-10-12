@@ -82,7 +82,7 @@ Trình cài đặt có tính lặp an toàn sẽ cài các gói phụ thuộc, k
 dịch thành phần tương thích, cấu hình GNOME Remote Desktop, lưu mật khẩu RDP
 trong GNOME Keyring và khởi động dịch vụ systemd của người dùng.
 
-Đóng cửa sổ UU Remote chỉ đóng trình xem; UU vẫn chạy nền. `uu-remote stop` thoát hoàn toàn và giải phóng bộ nhớ, còn `uu-remote autostart on|off|status` chọn có tự khởi động khi đăng nhập hay không. Cả hai cũng có trong menu chuột phải của trình khởi chạy và mục “UU Remote Settings” (cần `zenity`, do `./install.sh` cài). Cài lại vẫn giữ lựa chọn `uu-remote autostart off` trước đó.
+Đóng cửa sổ UU Remote chỉ đóng trình xem; UU vẫn chạy nền. `uu-remote stop` thoát hoàn toàn và giải phóng bộ nhớ, còn `uu-remote autostart on|off|status` chọn có tự khởi động khi đăng nhập hay không. Cả hai cũng có trong menu chuột phải của trình khởi chạy. Cài lại vẫn giữ lựa chọn `uu-remote autostart off` trước đó.
 
 ## Đường điều khiển
 

@@ -484,7 +484,7 @@ install_packages() {
         ninja-build openbox openssl p7zip-full patch python3 python3-attr \
         python3-gi python3-jinja2 tar tigervnc-viewer websockify \
         x11-utils x11vnc xauth xclip \
-        xdotool xvfb zenity zstd
+        xdotool xvfb zstd
     install_winehq
 }
 
@@ -823,10 +823,6 @@ desktop_entry="$HOME/.local/share/applications/uu-remote.desktop"
 render_desktop_entry "$repo_dir/desktop/uu-remote.desktop.in" \
     "$desktop_entry" "$HOME/.local/bin/uu-remote"
 chmod 0644 "$desktop_entry"
-manage_entry="$HOME/.local/share/applications/uu-remote-manage.desktop"
-render_desktop_entry "$repo_dir/desktop/uu-remote-manage.desktop.in" \
-    "$manage_entry" "$HOME/.local/bin/uu-remote"
-chmod 0644 "$manage_entry"
 if [[ -d "$HOME/Desktop" ]]; then
     desktop_shortcut="$HOME/Desktop/UU Remote.desktop"
     install -m 0755 "$desktop_entry" "$desktop_shortcut"

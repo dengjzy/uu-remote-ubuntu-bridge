@@ -161,7 +161,6 @@ rm -f \
     "$HOME/.config/systemd/user/uu-remote-bridge.service" \
     "$HOME/.config/systemd/user/uu-remote-console.service" \
     "$HOME/.local/share/applications/uu-remote.desktop" \
-    "$HOME/.local/share/applications/uu-remote-manage.desktop" \
     "$HOME/Desktop/UU Remote.desktop"
 rm -rf \
     "$HOME/.config/uu-remote-bridge" \

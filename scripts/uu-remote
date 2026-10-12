@@ -67,30 +67,6 @@ case "${1:-open}" in
                 ;;
         esac
         ;;
-    manage)
-        if [[ -z "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]] ||
-           ! command -v zenity >/dev/null 2>&1; then
-            notify_error 'The settings window needs zenity on a desktop. Use: uu-remote stop | uu-remote autostart on|off'
-            exit 1
-        fi
-        running="$("${systemctl_user[@]}" is-active uu-remote-bridge.service \
-            2>/dev/null || true)"
-        enabled="$("${systemctl_user[@]}" is-enabled uu-remote-bridge.service \
-            2>/dev/null || true)"
-        choice="$(zenity --list --title='UU Remote' --width=520 --height=420 \
-            --text="后台服务 background service: $running
-开机自启 start at login: $enabled" \
-            --column=ID --column='操作 Action' --hide-column=1 \
-            --print-column=1 \
-            quit '完全退出 UU Remote,释放内存和资源  (Quit completely)' \
-            on '开启开机自启  (Start at login)' \
-            off '关闭开机自启  (Do not start at login)' || true)"
-        case "$choice" in
-            quit) exec "$0" stop ;;
-            on) exec "$0" autostart on ;;
-            off) exec "$0" autostart off ;;
-        esac
-        ;;
     logs)
         exec journalctl --user -fu uu-remote-bridge.service
         ;;
@@ -169,7 +145,7 @@ case "${1:-open}" in
         exec "$console_bin" open "$@"
         ;;
     *)
-        printf 'usage: uu-remote [open|console|login|status|network|repair-registry|restart|stop|autostart|manage|logs|update|upgrade]\n' >&2
+        printf 'usage: uu-remote [open|console|login|status|network|repair-registry|restart|stop|autostart|logs|update|upgrade]\n' >&2
         exit 2
         ;;
 esac

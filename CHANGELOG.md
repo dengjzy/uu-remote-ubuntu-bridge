@@ -81,11 +81,9 @@ locked by the release manifest.
 
 - add a complete-quit and start-at-login switch for the windowed launcher:
   `uu-remote stop` now reports that the background service has quit,
-  `uu-remote autostart on|off|status` toggles `uu-remote-bridge.service`, the
-  launcher gains matching right-click actions, and a "UU Remote Settings"
-  entry opens the same choices in a dialog (zenity, now installed with the
-  other packages) for desktops that hide desktop actions; a reinstall keeps an
-  earlier `uu-remote autostart off`, and new installs still start at login
+  `uu-remote autostart on|off|status` toggles `uu-remote-bridge.service`, and
+  the launcher gains matching right-click actions; a reinstall keeps an earlier
+  `uu-remote autostart off`, and new installs still start at login
 - exact-hash support for UU `4.42.1.2835`, whose bundled executables report
   `4.42.0.2770`; hash-bound workstation acceptance now covers physical-desktop
   video, mouse/buttons, English typing, bidirectional Chinese text clipboard,

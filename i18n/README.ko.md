@@ -80,7 +80,7 @@ uu-shell --native lab
 GNOME Remote Desktop 설정, GNOME Keyring의 RDP 비밀번호 저장, systemd 사용자
 서비스 시작까지 처리합니다.
 
-UU Remote 창을 닫으면 뷰어만 닫히고 UU는 백그라운드에서 계속 실행됩니다. `uu-remote stop`은 완전히 종료하고 메모리를 해제하며, `uu-remote autostart on|off|status`는 로그인 시 자동 시작 여부를 정합니다. 둘 다 런처의 오른쪽 클릭 메뉴와 “UU Remote Settings” 항목(`zenity` 필요, `./install.sh`가 설치)에서도 사용할 수 있습니다. 다시 설치해도 이전에 설정한 `uu-remote autostart off`는 유지됩니다.
+UU Remote 창을 닫으면 뷰어만 닫히고 UU는 백그라운드에서 계속 실행됩니다. `uu-remote stop`은 완전히 종료하고 메모리를 해제하며, `uu-remote autostart on|off|status`는 로그인 시 자동 시작 여부를 정합니다. 둘 다 런처의 오른쪽 클릭 메뉴에서도 사용할 수 있습니다. 다시 설치해도 이전에 설정한 `uu-remote autostart off`는 유지됩니다.
 
 ## 제어 경로
 
