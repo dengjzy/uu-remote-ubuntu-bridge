@@ -92,6 +92,8 @@ uu-shell --native lab
 Remote Desktop、把 RDP 密码保存到 GNOME Keyring，并启动用户级 systemd
 服务。重复运行不会破坏已有账户状态。
 
+关闭 UU Remote 窗口只会关闭查看器，UU 仍在后台运行。`uu-remote stop` 会完全退出并释放内存，`uu-remote autostart on|off|status` 决定是否在登录时自动启动。这两项也可以在启动器的右键菜单中使用。重新安装会保留之前设置的 `uu-remote autostart off`。
+
 ## 控制链路
 
 ```text
