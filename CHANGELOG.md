@@ -8,6 +8,9 @@ locked by the release manifest.
 
 ### Fixed
 
+- reuse the managed UU window for `uu-remote login`, preserving the active
+  bridge and Wine prefix instead of stopping both during sign-in; start an
+  absent bridge through the existing console helper (adapted from #22)
 - preserve explicit disabled and runtime-only launcher autostart choices;
   abort an unreadable/masked unit preflight before stopping the bridge, and
   render desktop Exec paths through GLib-tested quoting, including spaces,
