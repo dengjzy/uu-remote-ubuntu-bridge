@@ -39,6 +39,11 @@ FreeRDP/WinPR pair. A durable reviewed artifact or reproducible replacement
 still needs to be supplied and validated. This change does **not** restore a
 fully working default RDP fresh install when no approved client is available.
 
+PR #22 proposes build 2101. Its downloaded SHA-256 and Jenkins source revision
+were confirmed on 2026-10-16, but it is still another expiring nightly. It has
+not replaced the accepted runtime: see the [artifact and capture review](reviews/2026-10-16-login-capture-freerdp.md)
+for the remaining distribution and runtime checks.
+
 For an existing **X11/XRDP desktop**, the VNC relay does not need this Windows
 FreeRDP binary:
 

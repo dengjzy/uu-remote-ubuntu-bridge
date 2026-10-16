@@ -125,6 +125,52 @@ class LauncherCommandTests(unittest.TestCase):
         self.addCleanup(box.cleanup)
         return box
 
+    def prepare_console(self, box):
+        app = box.home / '.local/share/wineprefixes/uu-remote/drive_c/Program Files/Netease/GameViewer'
+        app.mkdir(parents=True)
+        (app / 'GameViewer.exe').touch()
+        console = box.home / '.local/bin/uu-remote-console'
+        console.parent.mkdir(parents=True)
+        console.write_text('''#!/bin/bash
+printf '%s\\0' "$@" >"$HOME/console-argv"
+printf 'prefix %s\\n' "$WINEPREFIX" >>"$STUB_LOG"
+exit "${CONSOLE_STATUS:-0}"
+''')
+        console.chmod(0o700)
+        return app, console
+
+    def test_login_and_open_delegate_without_stopping_the_bridge(self):
+        for action in ('login', 'open'):
+            with self.subTest(action=action):
+                box = self.sandbox()
+                self.prepare_console(box)
+                result = box.launcher(action, 'one argument', '中文', '$literal')
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertEqual(b'window\x00one argument\x00' + '中文'.encode() + b'\x00$literal\x00',
+                                 (box.home / 'console-argv').read_bytes())
+                self.assertEqual([f'prefix {box.home}/.local/share/wineprefixes/uu-remote'], box.calls())
+
+    def test_login_preserves_the_console_exit_status(self):
+        box = self.sandbox()
+        self.prepare_console(box)
+        result = box.launcher('login', CONSOLE_STATUS='7')
+        self.assertEqual(7, result.returncode)
+        self.assertFalse(any('systemctl' in call for call in box.calls()))
+
+    def test_login_failure_does_not_stop_or_start_the_service(self):
+        for missing in ('display', 'app', 'console'):
+            with self.subTest(missing=missing):
+                box = self.sandbox()
+                app, console = self.prepare_console(box)
+                if missing == 'app':
+                    (app / 'GameViewer.exe').unlink()
+                if missing == 'console':
+                    console.unlink()
+                result = box.launcher('login', DISPLAY='' if missing == 'display' else ':99')
+                self.assertEqual(1, result.returncode, result.stderr)
+                self.assertFalse((box.home / 'console-argv').exists())
+                self.assertFalse(any('systemctl' in call for call in box.calls()))
+
     def test_stop_stops_the_service_and_tells_the_user(self):
         box = self.sandbox()
         result = box.launcher("stop")
