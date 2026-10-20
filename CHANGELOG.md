@@ -8,6 +8,13 @@ locked by the release manifest.
 
 ### Fixed
 
+- `uu-remote stop` now closes the UU window first, and the window helper no
+  longer lets a stuck `x11vnc` keep `window.lock`: its children do not inherit
+  the lock, the viewer runs in the background so SIGTERM is handled at once,
+  and cleanup force-kills a child that ignores SIGTERM after 2 s. Before this,
+  a window left over from a stopped bridge made every later open fail with
+  "The UU Remote window is already starting"
+
 - reuse the managed UU window for `uu-remote login`, preserving the active
   bridge and Wine prefix instead of stopping both during sign-in; start an
   absent bridge through the existing console helper (adapted from #22)

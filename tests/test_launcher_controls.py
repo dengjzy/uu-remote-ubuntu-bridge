@@ -180,6 +180,26 @@ exit "${CONSOLE_STATUS:-0}"
         self.assertIn(f"systemctl --user stop {SERVICE}", calls)
         self.assertTrue(any(call.startswith("notify") for call in calls))
 
+    def test_stop_closes_the_window_before_stopping_the_service(self):
+        box = self.sandbox()
+        console = box.home / ".local/bin/uu-remote-console"
+        console.parent.mkdir(parents=True)
+        console.write_text(
+            "#!/bin/bash\n"
+            "printf 'console %s\\n' \"$*\" >>\"$STUB_LOG\"\n"
+            "exit \"${CONSOLE_STATUS:-0}\"\n"
+        )
+        console.chmod(0o700)
+        for status in ("0", "3"):
+            with self.subTest(console_status=status):
+                box.log.write_text("")
+                result = box.launcher("stop", CONSOLE_STATUS=status)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                calls = [c for c in box.calls() if not c.startswith("notify")]
+                self.assertEqual(
+                    ["console close", f"systemctl --user stop {SERVICE}"], calls
+                )
+
     def test_stop_failure_is_reported_not_hidden(self):
         box = self.sandbox()
         result = box.launcher("stop", STUB_FAIL_VERB="stop")
@@ -400,6 +420,57 @@ class InstallerAutostartTests(unittest.TestCase):
         self.assertLess(read, source.index('"${systemctl_user[@]}" stop uu-remote-bridge.service'))
         self.assertLess(write, refresh)
         self.assertNotIn(f"reenable {SERVICE}", source)
+
+
+class WindowCloseTests(unittest.TestCase):
+    """`uu-remote-console close` ends our window process and nothing else."""
+
+    CONSOLE = ROOT / "scripts" / "uu-remote-console"
+
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.root = Path(directory.name)
+        run = self.root / "run"
+        (run / "uu-remote-console").mkdir(parents=True)
+        self.pid_file = run / "uu-remote-console" / "window.pid"
+        self.env = {
+            **os.environ,
+            "HOME": str(self.root / "home"),
+            "XDG_RUNTIME_DIR": str(run),
+        }
+
+    def spawn(self, argv):
+        process = subprocess.Popen(argv, start_new_session=True)
+        self.addCleanup(lambda: (process.kill(), process.wait()))
+        self.pid_file.write_text(f"{process.pid}\n")
+        return process
+
+    def close(self):
+        return subprocess.run(
+            ["bash", str(self.CONSOLE), "close"],
+            env=self.env, capture_output=True, text=True, timeout=30,
+        )
+
+    def test_close_ends_the_window_process(self):
+        # `bash .../uu-remote-console window` is what open_window runs as.
+        fake = self.root / "uu-remote-console"
+        fake.write_text("trap 'exit 0' TERM\nwhile :; do sleep 0.1; done\n")
+        process = self.spawn(["bash", str(fake), "window"])
+        time.sleep(0.3)
+        result = self.close()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(process.wait(timeout=5), 0)
+
+    def test_close_ignores_a_pid_that_is_not_our_window(self):
+        other = self.spawn(["sleep", "30"])
+        self.assertEqual(self.close().returncode, 0)
+        self.assertIsNone(other.poll())
+
+    def test_close_without_a_window_is_a_no_op(self):
+        self.assertEqual(self.close().returncode, 0)
+        self.pid_file.write_text("not-a-pid\n")
+        self.assertEqual(self.close().returncode, 0)
 
 
 if __name__ == "__main__":
