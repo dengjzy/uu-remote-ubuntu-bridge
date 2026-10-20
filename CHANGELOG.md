@@ -8,6 +8,11 @@ locked by the release manifest.
 
 ### Fixed
 
+- give the UU viewer window its own class (`UU-Remote`) and point the
+  launcher's `StartupWMClass` at it. The system TigerVNC launcher also claims
+  `TigerVNC Viewer`, so GNOME showed the UU window under the TigerVNC icon and
+  menu, and the launcher's right-click actions were not shown for it
+
 - reuse the managed UU window for `uu-remote login`, preserving the active
   bridge and Wine prefix instead of stopping both during sign-in; start an
   absent bridge through the existing console helper (adapted from #22)
