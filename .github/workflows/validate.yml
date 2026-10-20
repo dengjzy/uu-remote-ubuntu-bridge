@@ -55,6 +55,13 @@ jobs:
           UURB_REQUIRE_VIEWER_TESTS: "1"
         run: python3 -m unittest discover -s tests -v
 
+      - name: Compile the offline FreeRDP SSPI probe
+        run: |
+          x86_64-w64-mingw32-gcc -std=c11 -O2 -Wall -Wextra -Werror \
+            -Wl,--no-insert-timestamp \
+            -o "$RUNNER_TEMP/uu-freerdp-sspi-probe.exe" \
+            tests/probes/uu_freerdp_sspi_probe.c
+
       - name: Exercise the one-way controller clipboard boundary
         env:
           UURB_WINE_BIN: /usr/bin/wine
