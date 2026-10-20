@@ -58,6 +58,63 @@ class FreeRDPRuntimePreflightTests(unittest.TestCase):
         self.assertIn("never overwritten", result.stderr)
         self.assertEqual(sentinel.read_text(), "previous evidence")
 
+    def assert_preflight_rejected(self, diagnostic):
+        result = self.invoke()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(diagnostic, result.stderr)
+        self.assertNotIn("missing test tool", result.stderr)
+        self.assertFalse(self.output.exists())
+
+    def test_unlisted_dll_rejected(self):
+        (self.runtime / "stale.DLL").write_bytes(b"not in manifest")
+        self.assert_preflight_rejected("unlisted=['stale.DLL']")
+
+    def test_unlisted_provider_rejected(self):
+        providers = self.runtime / "ossl-modules"
+        providers.mkdir()
+        (providers / "extra.dll").write_bytes(b"not in manifest")
+        self.assert_preflight_rejected("unlisted=['ossl-modules/extra.dll']")
+
+    def test_symlinked_provider_directory_rejected(self):
+        providers = self.root / "other-providers"
+        providers.mkdir()
+        (self.runtime / "ossl-modules").symlink_to(providers, target_is_directory=True)
+        self.assert_preflight_rejected("provider directory must not be a symlink")
+
+    def test_nested_symlinked_provider_directory_rejected(self):
+        providers = self.runtime / "ossl-modules"
+        providers.mkdir()
+        (providers / "nested").symlink_to(self.root, target_is_directory=True)
+        self.assert_preflight_rejected("provider directory must not be a symlink")
+
+    def test_duplicate_manifest_entry_rejected(self):
+        with (self.runtime / ".build-sha256").open("a") as stream:
+            stream.write(f"{self.digest}  sdl-freerdp.exe\n")
+        self.assert_preflight_rejected("unsafe or duplicate runtime checksum entry")
+
+    def test_manifest_cannot_escape_runtime(self):
+        with (self.runtime / ".build-sha256").open("a") as stream:
+            stream.write(f"{self.digest}  ../outside.dll\n")
+        self.assert_preflight_rejected("unsafe or duplicate runtime checksum entry")
+
+    def test_manifest_cannot_name_unstaged_file(self):
+        (self.runtime / "other.exe").write_bytes(b"not part of runtime")
+        with (self.runtime / ".build-sha256").open("a") as stream:
+            stream.write(f"{self.digest}  other.exe\n")
+        self.assert_preflight_rejected("not staged=['other.exe']")
+
+    def test_complete_inventory_reaches_tool_check(self):
+        result = self.invoke()
+        self.assertIn("missing test tool: /missing/wine-must-not-run", result.stderr)
+        self.assertFalse(self.output.exists())
+
+    def test_old_shim_is_excluded_from_runtime_input(self):
+        # The helper compiles a new shim from the checked-out source.
+        (self.runtime / "winpr-sspi-shim.dll").write_bytes(b"old generated shim")
+        result = self.invoke()
+        self.assertIn("missing test tool: /missing/wine-must-not-run", result.stderr)
+        self.assertFalse(self.output.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

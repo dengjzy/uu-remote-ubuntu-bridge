@@ -61,6 +61,11 @@ scripts/test-freerdp-runtime.sh \
 ```
 
 The helper validates the client and runtime hashes before creating anything.
+The checksum manifest must cover exactly the files to stage, including every
+DLL and provider file. Unlisted files, duplicate or unsafe manifest paths, and
+symlinked provider directories are rejected. It copies the validated files into
+the temporary runtime and checks those bytes again; the source directory is
+not exposed to Wine. The recorded hashes remain with the test logs.
 It compiles the current SSPI shim and a synthetic probe, starts a temporary
 X server and fresh Wine prefix, and checks:
 
@@ -104,11 +109,12 @@ provenance metadata; it does not change the checked-in source or the production
 build script. The runtime checksum in the candidate record refers to that
 rebuilt library.
 
-The local suite ran 251 tests: 249 passed and the two existing opt-in tests
-were skipped. The new preflight regressions reject a mismatched executable,
-a changed runtime DLL and an existing evidence directory before starting
-Wine. The probe compiles with warnings treated as errors. These checks do
-not expand the runtime acceptance scope listed below.
+The local suite ran 260 tests: 258 passed and the two existing opt-in tests
+were skipped. The preflight regressions cover changed or unlisted runtime
+files, invalid manifests, provider-directory symlinks, preservation of existing
+evidence and acceptance of a complete inventory. The probe compiles with
+warnings treated as errors. These checks do not expand the runtime acceptance
+scope listed below.
 
 ## Before promotion
 

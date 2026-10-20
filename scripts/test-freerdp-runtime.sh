@@ -26,7 +26,48 @@ wineserver_bin="${UURB_WINESERVER_BIN:-/opt/wine-stable/bin/wineserver}"
 cc="${MINGW_CC:-x86_64-w64-mingw32-gcc}"
 printf '%s  %s\n' "$expected_sha" "$runtime/sdl-freerdp.exe" | sha256sum -c -
 [[ -s "$runtime/.build-sha256" ]]
-(cd "$runtime" && sha256sum -c .build-sha256)
+manifest="$(cat -- "$runtime/.build-sha256")"
+# Check coverage as well as hashes: sha256sum alone accepts extra DLLs.
+inventory="$(python3 - "$runtime" "$manifest" <<'PY'
+from pathlib import Path, PurePosixPath
+import re
+import sys
+
+root = Path(sys.argv[1])
+listed = set()
+for line in sys.argv[2].splitlines():
+    match = re.fullmatch(r"[0-9a-f]{64} [ *]([A-Za-z0-9_./-]+)", line)
+    if not match:
+        raise SystemExit("invalid runtime checksum entry")
+    name = match[1]
+    path = PurePosixPath(name)
+    if path.is_absolute() or ".." in path.parts or str(path) != name or name in listed:
+        raise SystemExit("unsafe or duplicate runtime checksum entry")
+    listed.add(name)
+
+files = [root / "sdl-freerdp.exe"]
+files += [path for path in root.iterdir()
+          if path.suffix.lower() == ".dll" and path.name != "winpr-sspi-shim.dll"]
+providers = root / "ossl-modules"
+if providers.is_symlink():
+    raise SystemExit("provider directory must not be a symlink")
+if providers.exists():
+    for path in providers.rglob("*"):
+        if path.is_dir():
+            if path.is_symlink():
+                raise SystemExit("provider directory must not be a symlink")
+        else:
+            files.append(path)
+if any(not path.is_file() for path in files):
+    raise SystemExit("runtime inventory contains a missing or non-regular file")
+actual = {path.relative_to(root).as_posix() for path in files}
+if actual != listed:
+    raise SystemExit(f"runtime inventory mismatch: unlisted={sorted(actual - listed)!r}; "
+                     f"not staged={sorted(listed - actual)!r}")
+print("\n".join(sorted(actual)))
+PY
+)"
+(cd "$runtime" && printf '%s\n' "$manifest" | sha256sum -c -)
 
 for command in "$wine_bin" "$wineboot_bin" "$wineserver_bin" "$cc" \
     Xvfb xvfb-run xauth timeout sha256sum python3; do
@@ -50,10 +91,15 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 mkdir "$scratch/runtime"
-for file in "$runtime"/*.dll "$runtime/sdl-freerdp.exe" "$runtime/ossl-modules"; do
-    [[ "$(basename -- "$file")" == winpr-sspi-shim.dll ]] && continue
-    [[ -e "$file" ]] && ln -s -- "$file" "$scratch/runtime/"
-done
+# Copy only the validated inventory; do not expose an unchecked directory or
+# live source symlink to Wine. Recheck the staged bytes against the same manifest.
+while IFS= read -r file; do
+    mkdir -p -- "$scratch/runtime/$(dirname -- "$file")"
+    cp -L -- "$runtime/$file" "$scratch/runtime/$file"
+done <<< "$inventory"
+printf '%s\n' "$manifest" >"$output/runtime-sha256.txt"
+(cd "$scratch/runtime" && sha256sum -c "$output/runtime-sha256.txt")
+printf '%s  %s\n' "$expected_sha" "$scratch/runtime/sdl-freerdp.exe" | sha256sum -c -
 "$cc" -std=c11 -O2 -Wall -Wextra -Werror -Wl,--no-insert-timestamp -shared \
     -o "$scratch/runtime/winpr-sspi-shim.dll" "$repo_dir/src/winpr_sspi_shim.c"
 "$cc" -std=c11 -O2 -Wall -Wextra -Werror -Wl,--no-insert-timestamp \
