@@ -102,6 +102,9 @@ locked by the release manifest.
 
 ### Added
 
+- add an isolated, hash-checked FreeRDP client/WinPR SSPI smoke test and a
+  dependency-release preparation guide; build 2101 remains a candidate,
+  pending notices and full runtime acceptance, with no installer pin change
 - add a complete-quit and start-at-login switch for the windowed launcher:
   `uu-remote stop` now reports that the background service has quit,
   `uu-remote autostart on|off|status` toggles `uu-remote-bridge.service`, and

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "status": "candidate-not-approved",
+  "upstream_repository": "https://github.com/FreeRDP/FreeRDP",
+  "source_commit": "5c8aac73cd293d44022c5ccfe36fd6f266b17098",
+  "client": {
+    "version": "3.32.3-dev0 (5c8aac73c)",
+    "filename": "sdl-freerdp.exe",
+    "size_bytes": 16056320,
+    "sha256": "0976457fbbb27b970de1aaf92a48474e1168efc3230ae271c7d0dc56e2bda2fd",
+    "upstream_build": 2101,
+    "retrieved_on": "2026-10-16",
+    "upstream_url": "https://ci.freerdp.com/job/freerdp-nightly-windows/arch=win64,label=vs2017/2101/artifact/install/bin/sdl-freerdp.exe",
+    "upstream_url_status_on_2026_10_20": 404,
+    "compiler": "MSVC 19.16.27045.0",
+    "static_sdl3": true,
+    "embedded_openssl_version_from_strings": "3.6.2"
+  },
+  "planned_release_tag": "deps-freerdp-5c8aac73c-win64-r1",
+  "local_runtime_smoke": {
+    "date": "2026-10-21",
+    "wine_version": "wine-11.0",
+    "client_version_buildconfig_help": "pass",
+    "winpr_reported_source_revision": "5c8aac73cd293d44022c5ccfe36fd6f266b17098",
+    "sspi_ansi_first_negotiate": "0x00090312 (SEC_I_CONTINUE_NEEDED)",
+    "sspi_unicode_first_negotiate": "0x00090312 (SEC_I_CONTINUE_NEEDED)",
+    "network_connection_tested": false,
+    "runtime_files_sha256": {
+      "sdl-freerdp.exe": "0976457fbbb27b970de1aaf92a48474e1168efc3230ae271c7d0dc56e2bda2fd",
+      "libwinpr3.dll": "c96a456ccb90ea0bc5e77e7724f314c214226a42b0ae8cbd39936bf0dc80c9c4",
+      "libcrypto-3-x64.dll": "4d2e724eb852f78ec0adbd1b7265325f79f503c9572658a26434f27f0cedb051",
+      "libssl-3-x64.dll": "b0aaaab67558716ea8cb03516d0e83ab92d1c0e3ddfc774c466032053f8b2331",
+      "libcjson-1.dll": "71a09f78d94ecee3f4002161e9b740ecf82c0c321501ce111bb8b5bc52f85a4e",
+      "liburiparser-1.dll": "b760714d224f86fb3cb2c2d6229d0e631a2b5779d6533c920e189e356faad451",
+      "ossl-modules/legacy.dll": "bbe224df64e6c834c2df4a4505d0af3826b951d78a93cff4429d2dd6ae41ae44"
+    }
+  },
+  "pending": [
+    "Exact dependency inventory and redistribution notices for the retained statically linked client.",
+    "End-to-end Wine RDP authentication, connection and reconnection.",
+    "Mouse coordinates, modifiers and US/JIS symbols.",
+    "Phone/Chinese/English multiline dictation without lost text.",
+    "Clipboard and startup/restart/rollback qualification."
+  ]
+}
