@@ -443,7 +443,8 @@ class WindowCloseTests(unittest.TestCase):
     def spawn(self, argv):
         process = subprocess.Popen(argv, start_new_session=True)
         self.addCleanup(lambda: (process.kill(), process.wait()))
-        self.pid_file.write_text(f"{process.pid}\n")
+        start = Path(f"/proc/{process.pid}/stat").read_text().rsplit(")", 1)[1].split()[19]
+        self.pid_file.write_text(f"{process.pid} {start}\n")
         return process
 
     def close(self):
@@ -453,9 +454,14 @@ class WindowCloseTests(unittest.TestCase):
         )
 
     def test_close_ends_the_window_process(self):
-        # `bash .../uu-remote-console window` is what open_window runs as.
+        # Use the same script path for open and close, replacing only the GUI
+        # entry point. All identity checks execute unchanged.
         fake = self.root / "uu-remote-console"
-        fake.write_text("trap 'exit 0' TERM\nwhile :; do sleep 0.1; done\n")
+        source = self.CONSOLE.read_text()
+        fake.write_text(source.replace('case "${1:-open}" in',
+            "open_window() { trap 'exit 0' TERM; while :; do sleep 0.1; done; }\n"
+            'case "${1:-open}" in'))
+        self.CONSOLE = fake
         process = self.spawn(["bash", str(fake), "window"])
         time.sleep(0.3)
         result = self.close()
@@ -471,6 +477,36 @@ class WindowCloseTests(unittest.TestCase):
         self.assertEqual(self.close().returncode, 0)
         self.pid_file.write_text("not-a-pid\n")
         self.assertEqual(self.close().returncode, 0)
+
+    def test_close_ignores_our_name_in_unrelated_arguments(self):
+        process = self.spawn([
+            "/usr/bin/python3", "-c", "import time; time.sleep(30)",
+            "uu-remote-console window",
+        ])
+        self.assertEqual(self.close().returncode, 0)
+        self.assertIsNone(process.poll())
+
+    def test_close_ignores_the_same_script_with_a_stale_start_time(self):
+        fake = self.root / "uu-remote-console"
+        fake.write_text(self.CONSOLE.read_text().replace('case "${1:-open}" in',
+            "open_window() { while :; do sleep 0.1; done; }\n"
+            'case "${1:-open}" in'))
+        self.CONSOLE = fake
+        process = self.spawn(["bash", str(fake), "window"])
+        self.pid_file.write_text(f"{process.pid} 0\n")
+        self.assertEqual(self.close().returncode, 0)
+        self.assertIsNone(process.poll())
+
+    def test_cleanup_ignores_recycled_child_pid(self):
+        process = self.spawn(["/usr/bin/python3", "-c", "import time; time.sleep(30)"])
+        fake = self.root / "uu-remote-console"
+        fake.write_text(self.CONSOLE.read_text().replace('case "${1:-open}" in',
+            f"open_window() {{ window_retag_pid={process.pid}; cleanup_window; }}\n"
+            'case "${1:-open}" in'))
+        result = subprocess.run(["bash", str(fake), "window"], env=self.env,
+                                capture_output=True, text=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIsNone(process.poll())
 
 
 if __name__ == "__main__":
