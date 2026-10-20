@@ -14,6 +14,10 @@ locked by the release manifest.
   and cleanup force-kills a child that ignores SIGTERM after 2 s. Before this,
   a window left over from a stopped bridge made every later open fail with
   "The UU Remote window is already starting"
+- give the UU viewer window its own class (`UU-Remote`) and point the
+  launcher's `StartupWMClass` at it. The system TigerVNC launcher also claims
+  `TigerVNC Viewer`, so GNOME showed the UU window under the TigerVNC icon and
+  menu, and the launcher's right-click actions were not shown for it
 
 - reuse the managed UU window for `uu-remote login`, preserving the active
   bridge and Wine prefix instead of stopping both during sign-in; start an

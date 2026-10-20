@@ -360,21 +360,48 @@ prepare_relay_vnc_auth() {
     mv -f "$temporary" "$relay_vnc_auth_file"
 }
 
-activate_existing_window() {
-    local window=""
+find_viewer_window() {
+    local candidate
 
     [[ -n "${DISPLAY:-}" ]] || return 1
     while read -r candidate; do
         if [[ "$(
             /usr/bin/xdotool getwindowname "$candidate" 2>/dev/null || true
         )" == 'UU Remote - TigerVNC' ]]; then
-            window="$candidate"
+            printf '%s\n' "$candidate"
+            return 0
         fi
     done < <(
-        /usr/bin/xdotool search --class 'TigerVNC Viewer' 2>/dev/null || true
+        /usr/bin/xdotool search --class '^(TigerVNC Viewer|UU-Remote)$' \
+            2>/dev/null || true
     )
-    [[ -n "$window" ]] || return 1
+    return 1
+}
+
+activate_existing_window() {
+    local window=""
+
+    window="$(find_viewer_window)" || return 1
     /usr/bin/xdotool windowactivate --sync "$window" >/dev/null 2>&1
+}
+
+# The system TigerVNC launcher also claims the class "TigerVNC Viewer", so
+# GNOME filed the UU window under the TigerVNC icon and menu. Give the viewer
+# window its own class, which the launcher's StartupWMClass names. The viewer
+# has no option for it, so set it once the window exists. 9>&- keeps this
+# short-lived job from inheriting window.lock.
+retag_viewer() {
+    local viewer
+
+    for _ in {1..100}; do
+        viewer="$(find_viewer_window || true)"
+        if [[ -n "$viewer" ]]; then
+            /usr/bin/xdotool set_window --classname uu-remote \
+                --class UU-Remote "$viewer" >/dev/null 2>&1 || true
+            return 0
+        fi
+        sleep 0.1
+    done
 }
 
 choose_window_port() {
@@ -530,6 +557,7 @@ open_window() {
     local client_window=""
     local command
     local ready=false
+    local retag_pid
     local viewer_status=0
     local window_port=""
 
@@ -620,6 +648,8 @@ open_window() {
     # keeps the children from inheriting window.lock, which would otherwise
     # stay held by a surviving x11vnc after this script is gone.
     set +e
+    retag_viewer >/dev/null 2>&1 9>&- &
+    retag_pid=$!
     /usr/bin/vncviewer \
         -Shared=1 \
         -RemoteResize=0 \
@@ -631,6 +661,7 @@ open_window() {
     window_viewer_pid=$!
     wait "$window_viewer_pid"
     viewer_status=$?
+    kill "$retag_pid" >/dev/null 2>&1 || true
     set -e
     return "$viewer_status"
 }
