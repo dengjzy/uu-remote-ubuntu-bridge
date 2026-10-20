@@ -41,6 +41,10 @@ case "${1:-open}" in
         exec "${systemctl_user[@]}" restart uu-remote-bridge.service
         ;;
     stop)
+        # Close the viewer first so it is not left showing a dead session.
+        if [[ -x "$console_bin" ]]; then
+            "$console_bin" close || true
+        fi
         "${systemctl_user[@]}" stop uu-remote-bridge.service
         notify_info 'UU Remote has quit completely. Open it again to start it.'
         ;;
