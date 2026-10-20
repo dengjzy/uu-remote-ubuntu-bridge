@@ -46,9 +46,13 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             gcc-mingw-w64-x86-64-win32 \
             wine wine64 wine64-tools \
-            x11-utils xclip xvfb libglib2.0-bin desktop-file-utils
+            x11-utils xclip xvfb libglib2.0-bin desktop-file-utils \
+            x11vnc xdotool openbox tigervnc-viewer python3-gi gir1.2-gtk-3.0
 
       - name: Run unit and documentation tests
+        env:
+          UURB_TEST_TIGERVNC: /usr/bin/xtigervncviewer
+          UURB_REQUIRE_VIEWER_TESTS: "1"
         run: python3 -m unittest discover -s tests -v
 
       - name: Exercise the one-way controller clipboard boundary

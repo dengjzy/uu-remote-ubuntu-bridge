@@ -40,6 +40,8 @@ bridge_xauthority=""
 vnc_pid=""
 websockify_pid=""
 window_vnc_pid=""
+window_viewer_pid=""
+window_retag_pid=""
 relay_focus_pid=""
 
 notify_error() {
@@ -237,13 +239,94 @@ cleanup_server() {
 }
 
 cleanup_window() {
+    local pid
+
     trap - EXIT INT TERM HUP
-    if [[ -n "$window_vnc_pid" ]]; then
-        kill "$window_vnc_pid" >/dev/null 2>&1 || true
-        wait "$window_vnc_pid" 2>/dev/null || true
-    fi
+    for pid in "$window_retag_pid" "$window_viewer_pid" "$window_vnc_pid"; do
+        [[ -n "$pid" ]] || continue
+        # The retag job may have finished hours ago. Do not signal a reused
+        # PID; pin it and verify it is still our direct child first.
+        /usr/bin/python3 - "$pid" "$$" <<'PY'
+import os
+from pathlib import Path
+import select
+import signal
+import sys
+
+fd = None
+try:
+    pid, parent = map(int, sys.argv[1:])
+    fd = os.pidfd_open(pid)
+    process = Path('/proc') / str(pid)
+    ppid = int((process / 'stat').read_text().rsplit(')', 1)[1].split()[1])
+    if ppid == parent and process.stat().st_uid == os.getuid():
+        signal.pidfd_send_signal(fd, signal.SIGTERM)
+        poller = select.poll()
+        poller.register(fd, select.POLLIN)
+        # x11vnc can ignore TERM once its display is gone. Bound that wait.
+        if not poller.poll(2000):
+            signal.pidfd_send_signal(fd, signal.SIGKILL)
+except (OSError, ValueError, IndexError):
+    pass
+finally:
+    if fd is not None:
+        os.close(fd)
+PY
+        wait "$pid" 2>/dev/null || true
+    done
     release_client || true
-    rm -f "$runtime_dir/window.port"
+    rm -f "$runtime_dir/window.port" "$runtime_dir/window.pid"
+}
+
+# Close the window opened by open_window: used by `uu-remote stop`, which
+# otherwise leaves the viewer and its x11vnc behind.
+close_window() {
+    # Pin the process before checking identity. A command merely mentioning
+    # our name is not our helper, and a recycled PID is not the recorded job.
+    /usr/bin/python3 - "$runtime_dir/window.pid" "$script_path" <<'PY'
+import os
+from pathlib import Path
+import select
+import signal
+import sys
+
+fd = None
+try:
+    record = Path(sys.argv[1]).read_text().split()
+    if len(record) != 2 or not all(value.isdecimal() for value in record):
+        raise SystemExit(0)
+    pid, start = map(int, record)
+    if pid <= 1:
+        raise SystemExit(0)
+    fd = os.pidfd_open(pid)
+    process = Path('/proc') / str(pid)
+    args = (process / 'cmdline').read_bytes().split(b'\0')[:-1]
+    ticks = int((process / 'stat').read_text().rsplit(')', 1)[1].split()[19])
+    if (process.stat().st_uid != os.getuid() or ticks != start or len(args) < 3
+            or Path(os.fsdecode(args[0])).name != 'bash'
+            or Path(os.fsdecode(args[1])).resolve() != Path(sys.argv[2])
+            or args[2] != b'window'):
+        raise SystemExit(0)
+    signal.pidfd_send_signal(fd, signal.SIGTERM)
+    poller = select.poll()
+    poller.register(fd, select.POLLIN)
+    # Three owned children may each consume their two-second TERM grace.
+    if not poller.poll(8000):
+        signal.pidfd_send_signal(fd, signal.SIGKILL)
+except (OSError, ValueError, IndexError):
+    pass
+finally:
+    if fd is not None:
+        os.close(fd)
+PY
+}
+
+window_start_ticks() {
+    local stat_line
+    local -a fields
+    IFS= read -r stat_line <"/proc/$$/stat"
+    read -r -a fields <<<"${stat_line##*) }"
+    printf '%s\n' "${fields[19]}"
 }
 
 restore_private_focus() {
@@ -328,21 +411,48 @@ prepare_relay_vnc_auth() {
     mv -f "$temporary" "$relay_vnc_auth_file"
 }
 
-activate_existing_window() {
-    local window=""
+find_viewer_window() {
+    local candidate
 
     [[ -n "${DISPLAY:-}" ]] || return 1
     while read -r candidate; do
         if [[ "$(
             /usr/bin/xdotool getwindowname "$candidate" 2>/dev/null || true
         )" == 'UU Remote - TigerVNC' ]]; then
-            window="$candidate"
+            printf '%s\n' "$candidate"
+            return 0
         fi
     done < <(
-        /usr/bin/xdotool search --class 'TigerVNC Viewer' 2>/dev/null || true
+        /usr/bin/xdotool search --class '^(TigerVNC Viewer|UU-Remote)$' \
+            2>/dev/null || true
     )
-    [[ -n "$window" ]] || return 1
+    return 1
+}
+
+activate_existing_window() {
+    local window=""
+
+    window="$(find_viewer_window)" || return 1
     /usr/bin/xdotool windowactivate --sync "$window" >/dev/null 2>&1
+}
+
+# The system TigerVNC launcher also claims the class "TigerVNC Viewer", so
+# GNOME filed the UU window under the TigerVNC icon and menu. Give the viewer
+# window its own class, which the launcher's StartupWMClass names. The viewer
+# has no option for it, so set it once the window exists. 9>&- keeps this
+# short-lived job from inheriting window.lock.
+retag_viewer() {
+    local viewer
+
+    for _ in {1..100}; do
+        viewer="$(find_viewer_window || true)"
+        if [[ -n "$viewer" ]]; then
+            /usr/bin/xdotool set_window --classname uu-remote \
+                --class UU-Remote "$viewer" >/dev/null 2>&1 || true
+            return 0
+        fi
+        sleep 0.1
+    done
 }
 
 choose_window_port() {
@@ -542,7 +652,8 @@ open_window() {
     }
 
     printf '%s\n' "$window_port" >"$runtime_dir/window.port"
-    chmod 0600 "$runtime_dir/window.port"
+    printf '%s %s\n' "$$" "$(window_start_ticks)" >"$runtime_dir/window.pid"
+    chmod 0600 "$runtime_dir/window.port" "$runtime_dir/window.pid"
     trap cleanup_window EXIT
     trap 'exit 130' INT
     trap 'exit 143' TERM HUP
@@ -565,7 +676,7 @@ open_window() {
         -noscr \
         -desktop 'UU Remote' \
         -quiet \
-        >>"$state_dir/window-x11vnc.log" 2>&1 &
+        >>"$state_dir/window-x11vnc.log" 2>&1 9>&- &
     window_vnc_pid=$!
 
     for _ in {1..80}; do
@@ -582,7 +693,13 @@ open_window() {
         return 1
     fi
 
+    # Run the viewer in the background and wait for it: bash only runs the
+    # TERM trap (and so cleanup_window) between foreground commands. 9>&-
+    # keeps the children from inheriting window.lock, which would otherwise
+    # stay held by a surviving x11vnc after this script is gone.
     set +e
+    retag_viewer >/dev/null 2>&1 9>&- &
+    window_retag_pid=$!
     /usr/bin/vncviewer \
         -Shared=1 \
         -RemoteResize=0 \
@@ -590,7 +707,9 @@ open_window() {
         -AlertOnFatalError=0 \
         -SecurityTypes=None \
         "127.0.0.1::$window_port" \
-        >>"$state_dir/window-viewer.log" 2>&1
+        >>"$state_dir/window-viewer.log" 2>&1 9>&- &
+    window_viewer_pid=$!
+    wait "$window_viewer_pid"
     viewer_status=$?
     set -e
     return "$viewer_status"
@@ -741,6 +860,9 @@ open_console() {
 case "${1:-open}" in
     window)
         open_window
+        ;;
+    close)
+        close_window
         ;;
     open)
         open_console

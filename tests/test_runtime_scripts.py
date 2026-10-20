@@ -431,7 +431,7 @@ class RuntimeScriptTests(unittest.TestCase):
         self.assertIn("ExecStart=%h/.local/bin/uu-remote-console serve", unit)
         self.assertIn("NoNewPrivileges=yes", unit)
         self.assertIn("Exec=@EXEC@", desktop)
-        self.assertIn("StartupWMClass=TigerVNC Viewer", desktop)
+        self.assertIn("StartupWMClass=UU-Remote", desktop)
         self.assertNotIn("noVNC", desktop)
         self.assertIn('"$desktop_entry" "$HOME/.local/bin/uu-remote"', installer)
         self.assertIn('exec "$console_bin" window "$@"', command)
