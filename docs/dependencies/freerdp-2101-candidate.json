@@ -17,6 +17,8 @@
     "embedded_openssl_version_from_strings": "3.6.2"
   },
   "planned_release_tag": "deps-freerdp-5c8aac73c-win64-r1",
+  "notices_document": "freerdp-2101-notices.md",
+  "qualification_report": "freerdp-2101-qualification-report.md",
   "local_runtime_smoke": {
     "date": "2026-10-21",
     "wine_version": "wine-11.0",

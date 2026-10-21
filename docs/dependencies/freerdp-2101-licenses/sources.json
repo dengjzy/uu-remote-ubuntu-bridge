@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "status": "reference-collection-not-release-approval",
+  "retrieved_on": "2026-10-21",
+  "entries": [
+    {
+      "component": "cJSON",
+      "source_repository": "DaveGamble/cJSON",
+      "source_ref": "v1.7.19",
+      "source_revision": "c859b25da02955fef659d658b8f324b5cde87be3",
+      "source_path": "LICENSE",
+      "source_url": "https://raw.githubusercontent.com/DaveGamble/cJSON/c859b25da02955fef659d658b8f324b5cde87be3/LICENSE",
+      "file": "DaveGamble-cJSON-v1.7.19-LICENSE",
+      "sha256": "a36dda207c36db5818729c54e7ad4e8b0c6fba847491ba64f372c1a2037b6d5c",
+      "identity_scope": "version-or-source-correlated"
+    },
+    {
+      "component": "FreeRDP",
+      "source_repository": "FreeRDP/FreeRDP",
+      "source_ref": "5c8aac73cd293d44022c5ccfe36fd6f266b17098",
+      "source_revision": "5c8aac73cd293d44022c5ccfe36fd6f266b17098",
+      "source_path": "LICENSE",
+      "source_url": "https://raw.githubusercontent.com/FreeRDP/FreeRDP/5c8aac73cd293d44022c5ccfe36fd6f266b17098/LICENSE",
+      "file": "FreeRDP-FreeRDP-5c8aac73cd293d44022c5ccfe36fd6f266b17098-LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "identity_scope": "version-or-source-correlated"
+    },
+    {
+      "component": "freetype",
+      "source_repository": "freetype/freetype",
+      "source_ref": "VER-2-13-3",
+      "source_revision": "42608f77f20749dd6ddc9e0536788eaad70ea4b5",
+      "source_path": "docs/FTL.TXT",
+      "source_url": "https://raw.githubusercontent.com/freetype/freetype/42608f77f20749dd6ddc9e0536788eaad70ea4b5/docs/FTL.TXT",
+      "file": "freetype-freetype-VER-2-13-3-FTL.TXT",
+      "sha256": "08c135755dd589039470f1fdbb400daaabaaa50d0b366d19cebff4d22986baa1",
+      "identity_scope": "reference-only-version-not-established"
+    },
+    {
+      "component": "harfbuzz",
+      "source_repository": "harfbuzz/harfbuzz",
+      "source_ref": "10.0.1",
+      "source_revision": "a1d9bfe62818ef0fa9cf63b6e6d51436b1c93cbc",
+      "source_path": "COPYING",
+      "source_url": "https://raw.githubusercontent.com/harfbuzz/harfbuzz/a1d9bfe62818ef0fa9cf63b6e6d51436b1c93cbc/COPYING",
+      "file": "harfbuzz-harfbuzz-10.0.1-COPYING",
+      "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64",
+      "identity_scope": "reference-only-version-not-established"
+    },
+    {
+      "component": "SDL",
+      "source_repository": "libsdl-org/SDL",
+      "source_ref": "release-3.2.0",
+      "source_revision": "535d80badefc83c5c527ec5748f2a20d6a9310fe",
+      "source_path": "LICENSE.txt",
+      "source_url": "https://raw.githubusercontent.com/libsdl-org/SDL/535d80badefc83c5c527ec5748f2a20d6a9310fe/LICENSE.txt",
+      "file": "libsdl-org-SDL-release-3.2.0-LICENSE.txt",
+      "sha256": "97f35b302b361680ec1e891e95d2d52097bb95abff361434916d99dc1305f127",
+      "identity_scope": "reference-only-version-not-established"
+    },
+    {
+      "component": "SDL_image",
+      "source_repository": "libsdl-org/SDL_image",
+      "source_ref": "release-3.2.0",
+      "source_revision": "4a762bdfb7b43dae7a8a818567847881e49bdab4",
+      "source_path": "LICENSE.txt",
+      "source_url": "https://raw.githubusercontent.com/libsdl-org/SDL_image/4a762bdfb7b43dae7a8a818567847881e49bdab4/LICENSE.txt",
+      "file": "libsdl-org-SDL_image-release-3.2.0-LICENSE.txt",
+      "sha256": "7826eca0a0f7e591f38dd844e207a200aac81a59b20d8a30c3af8c6282af13e6",
+      "identity_scope": "reference-only-version-not-established"
+    },
+    {
+      "component": "SDL_ttf",
+      "source_repository": "libsdl-org/SDL_ttf",
+      "source_ref": "release-3.2.0",
+      "source_revision": "3675de381020a719c37f7c79f6564cf52c8f4dcc",
+      "source_path": "LICENSE.txt",
+      "source_url": "https://raw.githubusercontent.com/libsdl-org/SDL_ttf/3675de381020a719c37f7c79f6564cf52c8f4dcc/LICENSE.txt",
+      "file": "libsdl-org-SDL_ttf-release-3.2.0-LICENSE.txt",
+      "sha256": "7826eca0a0f7e591f38dd844e207a200aac81a59b20d8a30c3af8c6282af13e6",
+      "identity_scope": "reference-only-version-not-established"
+    },
+    {
+      "component": "libtiff",
+      "source_repository": "libsdl-org/libtiff",
+      "source_ref": "v4.5.1",
+      "source_revision": "4f34a374b2e2cba3c8055ab77458c5730c073aff",
+      "source_path": "LICENSE.md",
+      "source_url": "https://raw.githubusercontent.com/libsdl-org/libtiff/4f34a374b2e2cba3c8055ab77458c5730c073aff/LICENSE.md",
+      "file": "libsdl-org-libtiff-v4.5.1-LICENSE.md",
+      "sha256": "0780558a8bfba0af1160ec1ff11ade4f41c0d7deafd6ecfc796b492a788e380d",
+      "identity_scope": "reference-only-version-not-established"
+    },
+    {
+      "component": "zlib",
+      "source_repository": "madler/zlib",
+      "source_ref": "v1.3.1",
+      "source_revision": "51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf",
+      "source_path": "LICENSE",
+      "source_url": "https://raw.githubusercontent.com/madler/zlib/51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf/LICENSE",
+      "file": "madler-zlib-v1.3.1-LICENSE",
+      "sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243",
+      "identity_scope": "version-or-source-correlated"
+    },
+    {
+      "component": "openssl",
+      "source_repository": "openssl/openssl",
+      "source_ref": "openssl-3.6.2",
+      "source_revision": "fe686e15d84334b284f883118ed92f64b409b3aa",
+      "source_path": "LICENSE.txt",
+      "source_url": "https://raw.githubusercontent.com/openssl/openssl/fe686e15d84334b284f883118ed92f64b409b3aa/LICENSE.txt",
+      "file": "openssl-openssl-openssl-3.6.2-LICENSE.txt",
+      "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+      "identity_scope": "version-or-source-correlated"
+    },
+    {
+      "component": "openssl",
+      "source_repository": "openssl/openssl",
+      "source_ref": "openssl-3.6.3",
+      "source_revision": "aae016bfd52fcad2bc9657c2c782cfdf73b1ed5f",
+      "source_path": "LICENSE.txt",
+      "source_url": "https://raw.githubusercontent.com/openssl/openssl/aae016bfd52fcad2bc9657c2c782cfdf73b1ed5f/LICENSE.txt",
+      "file": "openssl-openssl-openssl-3.6.3-LICENSE.txt",
+      "sha256": "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+      "identity_scope": "version-or-source-correlated"
+    },
+    {
+      "component": "libpng",
+      "source_repository": "pnggroup/libpng",
+      "source_ref": "v1.6.56",
+      "source_revision": "d5515b5b8be3901aac04e5bd8bd5c89f287bcd33",
+      "source_path": "LICENSE",
+      "source_url": "https://raw.githubusercontent.com/pnggroup/libpng/d5515b5b8be3901aac04e5bd8bd5c89f287bcd33/LICENSE",
+      "file": "pnggroup-libpng-v1.6.56-LICENSE",
+      "sha256": "bdb0a645ea18c60507d0368379b1ac5474b92255fcc2d115e07486a7672ba526",
+      "identity_scope": "version-or-source-correlated"
+    },
+    {
+      "component": "uriparser",
+      "source_repository": "uriparser/uriparser",
+      "source_ref": "uriparser-1.0.2",
+      "source_revision": "9b2bed92f5deecf740819f9bf27724bee2fe9c12",
+      "source_path": "COPYING.BSD-3-Clause",
+      "source_url": "https://raw.githubusercontent.com/uriparser/uriparser/9b2bed92f5deecf740819f9bf27724bee2fe9c12/COPYING.BSD-3-Clause",
+      "file": "uriparser-uriparser-uriparser-1.0.2-COPYING.BSD-3-Clause",
+      "sha256": "287f09e6546a9610f949f89e8fb937cacfeabd7bfaa8c8a0c18312193bf04ad3",
+      "identity_scope": "version-or-source-correlated"
+    },
+    {
+      "component": "opus",
+      "source_repository": "xiph/opus",
+      "source_ref": "v1.5.2",
+      "source_revision": "ddbe48383984d56acd9e1ab6a090c54ca6b735a6",
+      "source_path": "COPYING",
+      "source_url": "https://raw.githubusercontent.com/xiph/opus/ddbe48383984d56acd9e1ab6a090c54ca6b735a6/COPYING",
+      "file": "xiph-opus-v1.5.2-COPYING",
+      "sha256": "01e1167d54a096d123cf6dfbbeb19587278845c6481d2d66d545669846079551",
+      "identity_scope": "reference-only-version-not-established"
+    }
+  ]
+}
