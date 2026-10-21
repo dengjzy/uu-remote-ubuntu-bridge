@@ -34,8 +34,10 @@ every delivered runtime file must be accounted for and tested.
 The binary's build configuration reports static SDL3 linkage, OpenSSL and
 Opus support, and SDL image dialogs. Strings also identify SDL_ttf, FreeType,
 HarfBuzz and libtiff. This is evidence that the FreeRDP license alone is not
-a complete notice bundle. These observations are documented and inventoried
-with full third-party notices in [freerdp-2101-notices.md](freerdp-2101-notices.md).
+a complete notice bundle. These observations are collected and inventoried
+with unmodified upstream notices in [freerdp-2101-notices.md](freerdp-2101-notices.md).
+Interactive qualification results on a live host are recorded in
+[freerdp-2101-qualification-report.md](freerdp-2101-qualification-report.md).
 The OpenSSL 3.6.2 string inside the client is separate from the OpenSSL 3.6.3
 package used by the current WinPR build recipe.
 
