@@ -1,7 +1,8 @@
 # FreeRDP Build 2101 Runtime Qualification Report
 
 * **Date**: 2026-10-21
-* **Status**: Contributor-tested acceptance evidence (unreproduced by upstream maintainer)
+* **Status**: Contributor-reported acceptance evidence; interactive checks not independently reproduced by the bridge maintainer
+* **Reporter / source**: [dengjzy, PR #24](https://github.com/lachlanchen/uu-remote-ubuntu-bridge/pull/24#issuecomment-6311428479)
 * **Candidate**: FreeRDP nightly build 2101 (`sdl-freerdp.exe`) + matching WinPR runtime
 * **Planned Release Tag**: `deps-freerdp-5c8aac73c-win64-r1`
 
@@ -13,9 +14,9 @@
 * **Desktop Environment**: GNOME 46 (X11 backend for UU Remote display)
 * **Display Output**: Native 1920x1200 (16:10 aspect ratio)
 * **Wine Version**: `wine-11.0` (vanilla Wine package)
-* **Bridge Git Baseline**: PR #24 branch HEAD (rebased on upstream `main` commit `6af4472`)
+* **Bridge Git Baseline**: Contributor reports the PR #24 branch based on `6af4472`; the exact tested HEAD was not separately specified. This report was submitted in `5e9ca037832d1033e16c90f496ee13f241a0d698`.
 
-### Verified Binary Checksums (SHA-256)
+### Contributor-reported Binary Checksums (SHA-256)
 
 ```text
 0976457fbbb27b970de1aaf92a48474e1168efc3230ae271c7d0dc56e2bda2fd  sdl-freerdp.exe (build 2101, commit 5c8aac73cd293d44022c5ccfe36fd6f266b17098)
@@ -81,7 +82,7 @@ b760714d224f86fb3cb2c2d6229d0e631a2b5779d6533c920e189e356faad451  liburiparser-1
 
 ---
 
-## 3. Summary of Status
+## 3. Summary of Contributor-reported Status
 
 | Category | Status | Notes |
 |:---|:---|:---|
@@ -95,3 +96,21 @@ b760714d224f86fb3cb2c2d6229d0e631a2b5779d6533c920e189e356faad451  liburiparser-1
 | Service Lifecycle & Rollback | **PASS** | Daemon lifecycle and fallback verified |
 
 *Notice: This report documents contributor-observed acceptance results and remains labelled contributor-tested unless independently verified by upstream maintainers.*
+
+## 4. Maintainer comparison and release scope
+
+The reported client checksum matches the retained official executable. The
+reported WinPR DLL hash differs from the maintainer's separately built DLL in
+[the candidate record](freerdp-2101-candidate.json); this report does not establish
+that those builds are byte-identical. The reported binary hashes are preserved
+as supplied and have not been checked against the contributor's installed files.
+
+The maintainer's offline startup and first-token SSPI checks remain separate
+from these interactive observations. Physical JIS keys were not exercised;
+the Chinese multiline description covers IME composition, while the mobile
+dictation report does not specify duration or multiline test steps. Those
+details remain unconfirmed rather than being inferred as additional passes.
+
+Recording this report does not change installer pins or approve release
+publication. Exact dependency inventory/notices and the final acceptance
+decision remain tracked in the candidate record and issue #16.

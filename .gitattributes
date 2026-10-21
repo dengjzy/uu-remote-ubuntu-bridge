@@ -1,0 +1,3 @@
+# Preserve imported upstream notice bytes, including their original whitespace.
+docs/dependencies/freerdp-2101-licenses/* -text -whitespace
+docs/dependencies/freerdp-2101-licenses/sources.json text eol=lf whitespace
